@@ -208,7 +208,15 @@ class EmbeddingModel(Model):
 
 
 
-
+    # not as clean: TODO: could change
     @override
     def inference(self, *args, **kwargs): #better args passing
-        return self.pool_mean(super().inference(*args, **kwargs).last_hidden_state, kwargs["attention_mask"])
+        result = super().inference(*args, **kwargs)
+
+        if hasattr(result, "pooler_output"):
+            return result.pooler_output
+        
+        else:
+            return self.pool_mean(
+                result.last_hidden_state, kwargs["attention_mask"]
+            )

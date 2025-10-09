@@ -123,6 +123,22 @@ class InferenceTest(unittest.TestCase):
 
     def test_inference4(self):
         to_test = models.EmbeddingModel.__call__
+        expected_dim = 768
+
+        model_name = "facebook/dpr-question_encoder-single-nq-base"
+        test_text = "Tell a joke!"
+        args = {
+            "self": models.EmbeddingModel(model_name, force_model=AutoModel)
+        } | models.Tokenizer(model_name)(test_text)
+        
+        
+
+        self.assertEqual(len(to_test(**args)[0]), expected_dim)
+        
+
+
+    def test_inference5(self):
+        to_test = models.EmbeddingModel.__call__
         expected_dim = 2560
 
         model_name = "Qwen/Qwen3-Embedding-4B"
