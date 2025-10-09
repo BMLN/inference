@@ -1,4 +1,5 @@
 .env
 .venv
-Pipfile.lock
+*.lock
+*__pycache__*
 *.local.*

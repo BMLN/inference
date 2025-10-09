@@ -89,7 +89,7 @@ def get_model_class_from_cfg(cfg):
 class Model():
 
     @classmethod
-    def load(cls, modelname, modelcache="/modelcache"):
+    def load(cls, modelname, modelcache="/modelcache", force_model=None):
         makedirs(modelcache, exist_ok=True)
 
         try: 
@@ -98,8 +98,7 @@ class Model():
             __dl =  snapshot_download(modelname)
 
         config = AutoConfig.from_pretrained(__dl)
-        model = get_model_class_from_cfg(config)
-
+        model = force_model if force_model else get_model_class_from_cfg(config)
 
         # tokenizer = AutoTokenizer.from_pretrained(__dl)
         return model.from_pretrained(
@@ -112,8 +111,9 @@ class Model():
         )
     
 
-    def __init__(self, modelname):
+    def __init__(self, modelname, force_model=None):
         self.modelname = modelname
+        self.force_model=force_model
 
         self.model = None
 
@@ -126,7 +126,7 @@ class Model():
         # if self.tokenizer == None and self.model == None:
             # self.tokenizer, self.model = self.load(self.modelname)
         if self.model == None:
-            self.model = self.load(self.modelname)
+            self.model = self.load(self.modelname, force_model=self.force_model)
 
         return self.inference(*args, **kwargs)
                 
@@ -145,7 +145,7 @@ class Tokenizer(Model):
 
     @override
     @classmethod
-    def load(cls, modelname, modelcache="/modelcache"):
+    def load(cls, modelname, modelcache="/modelcache", *args, **kwargs):
         makedirs(modelcache, exist_ok=True)
 
         try: 
@@ -192,3 +192,23 @@ class LanguageModel(Model):
 
 
 
+class EmbeddingModel(Model):
+
+    #https://huggingface.co/Qwen/Qwen3-Embedding-4B
+    @classmethod
+    def pool_mean(cls, tensors, attention_masks):
+
+        if attention_masks[:, -1].sum() == attention_masks.shape[0]: #if left_padding
+            return tensors[:, -1]
+        
+        else:
+            sequence_lengths = attention_masks.sum(dim=1) - 1
+            batch_size = tensors.shape[0]
+            return tensors[torch.arange(batch_size, device=tensors.device), sequence_lengths]
+
+
+
+
+    @override
+    def inference(self, *args, **kwargs): #better args passing
+        return self.pool_mean(super().inference(*args, **kwargs).last_hidden_state, kwargs["attention_mask"])
