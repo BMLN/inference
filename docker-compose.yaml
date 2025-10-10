@@ -1,0 +1,21 @@
+services:
+
+  ollama:
+    image: ollama/ollama
+    environment:
+      - OLLAMA_NO_PRELOAD=1
+    ports:
+      - 11434:11434
+    volumes:
+      - ./.ollama:/root/.ollama
+
+  ollama_init:
+    image: curlimages/curl
+    environment:
+      - API_URL=ollama:11434
+      - MODEL_NAME=tinyllama
+    depends_on:
+      - ollama
+    restart: no
+    entrypoint: [ "sh", "-c", 'curl -X POST "$${API_URL}"/api/pull -d "{\"model\": \"$${MODEL_NAME}\"}"' ] 
+
