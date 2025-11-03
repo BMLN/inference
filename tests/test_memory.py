@@ -4,7 +4,7 @@ import unittest
 
 
 
-from src.inference import models, memory
+from src.inference.local import models, memory
 
 
 

@@ -6,7 +6,7 @@ from transformers import AutoConfig, AutoTokenizer, AutoModel
 
 
 
-from src.inference import models
+from src.inference.local import models
 
 
 
