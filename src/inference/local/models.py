@@ -107,6 +107,7 @@ class Model():
             device_map="auto",#"sequential",
             #max_memory={0: "8GiB", "cpu": "16GiB"},
             torch_dtype="auto",
+            low_cpu_mem_usage=True,
             offload_folder=modelcache
         )
     
