@@ -145,6 +145,16 @@ class Model():
 class Tokenizer(Model):
 
     @override
+    def __init__(self, modelname, force_model=None, prefix=None, suffix=None):
+        assert prefix is None or isinstance(prefix, (str, torch.Tensor))
+        assert suffix is None or isinstance(suffix, (str, torch.Tensor))
+
+        super().__init__(modelname, force_model)
+        self.prefix = prefix
+        self.suffix = suffix
+
+
+    @override
     @classmethod
     def load(cls, modelname, modelcache="/modelcache", *args, **kwargs):
         makedirs(modelcache, exist_ok=True)
@@ -157,10 +167,32 @@ class Tokenizer(Model):
     
         return AutoTokenizer.from_pretrained(__dl)
         
-        
+    
+    
+    #TODO: could iterate cleaner
     @override
     def inference(self, text, *args, **kwargs):
-        return super().inference(*([text] + list(*args)), **(kwargs | {"return_tensors": "pt"}))
+        output = super().inference(*([text] + list(*args)), **(kwargs | {"return_tensors": "pt"}))
+
+        if self.prefix is not None:
+            if isinstance(self.prefix, str):
+                self.prefix = super().inference(*[self.prefix] + list(*args), **kwargs | {"return_tensors": "pt"})["input_ids"].tolist()[0]
+            
+            for x in reversed(self.prefix):
+                output["input_ids"] = torch.nn.functional.pad(output["input_ids"], pad=(1,0), value=x)
+                output["attention_mask"] = torch.nn.functional.pad(output["attention_mask"], pad=(1,0), value=1)
+
+        if self.suffix is not None:
+            if isinstance(self.suffix, str):
+                self.suffix = super().inference(*[self.suffix] + list(*args), **kwargs | {"return_tensors": "pt"})["input_ids"].tolist()[0]
+
+            for x in self.suffix:
+                output["input_ids"] = torch.nn.functional.pad(output["input_ids"], pad=(0,1), value=x)
+                output["attention_mask"] = torch.nn.functional.pad(output["attention_mask"], pad=(0,1), value=1)
+  
+
+        return output
+
 
 
     def decode(self, *args, **kwargs):
@@ -177,20 +209,26 @@ class Tokenizer(Model):
 class LanguageModel(Model):
     
     @override
-    def inference(self, kwargs):
+    def inference(self, **kwargs):
         assert self.model
         assert "input_ids" in kwargs
         
         with torch.no_grad():
-            return self.model.generate(
+            output = self.model.generate(
                 **(
                     { 
                         "do_sample": True, 
                         "return_dict_in_generate": False
                     } | kwargs
                 )
-            )[:, kwargs["input_ids"].shape[-1]]
+            )
+            
+            if not kwargs.get("return_dict_in_generate", False):
+                return output[:, kwargs["input_ids"].shape[-1]:]
 
+            else:
+                output.sequences = output.sequences[:, kwargs["input_ids"].shape[-1]:]
+                return output
 
 
 class EmbeddingModel(Model):
