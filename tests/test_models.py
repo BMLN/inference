@@ -94,12 +94,12 @@ class TokenizerTest(unittest.TestCase):
 
         #args
         test_modelname = "Qwen/Qwen3-0.6B"
-        test_text = ["Tell a joke!", "I hope it is funny"]
+        test_text = ["Tell a joke!", "I hope it is really funny"]
 
         #test
-        with self.assertRaises(Exception):
-            res = to_test(test_modelname)(test_text)
-
+        res = to_test(test_modelname)(test_text, padding=True)
+        self.assertIn("input_ids", res)
+        self.assertEqual(len(res["input_ids"]), 2)
 
 
 
