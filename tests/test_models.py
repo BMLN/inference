@@ -75,6 +75,34 @@ class ModelClassDetectionTest(unittest.TestCase):
 
 
 
+class TokenizerTest(unittest.TestCase):
+
+    def test1(self):
+        to_test = models.Tokenizer
+
+        #args
+        test_modelname = "Qwen/Qwen3-0.6B"
+        test_text = "Tell a joke!"
+
+        #test
+        res = to_test(test_modelname)(test_text)
+        self.assertIn("input_ids", res)
+
+
+    def test2(self):
+        to_test = models.Tokenizer
+
+        #args
+        test_modelname = "Qwen/Qwen3-0.6B"
+        test_text = ["Tell a joke!", "I hope it is funny"]
+
+        #test
+        with self.assertRaises(Exception):
+            res = to_test(test_modelname)(test_text)
+
+
+
+
 
 class InferenceTest(unittest.TestCase):
 
