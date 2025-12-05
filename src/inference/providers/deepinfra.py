@@ -35,7 +35,6 @@ class DeepInfraClient(InferenceProvider):
             messages.insert(0,{"role": "system", "content": system_prompt})
         
         messages.append({"role": "user", "content": prompt})
-        
         return messages
 
 
@@ -47,7 +46,7 @@ class DeepInfraClient(InferenceProvider):
 
         payload: Dict[str, Any] = {
             "model": self.model,
-            "messages": self._build_messages(prompt, params),
+            "messages": self._build_messages(prompt, params.get("system_prompt", None)),
         }
 
         # optionale OpenAI/DeepInfra-Parameter durchreichen
