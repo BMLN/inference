@@ -42,4 +42,19 @@ class DeepinfraTest(unittest.TestCase):
         self.assertGreater(len(str.split(result)), 5)
 
 
+
+    def test_inference_with_systemprompt(self):
+        to_test = deepinfra.DeepInfraClient.generate
+
+        args = {
+            "self": deepinfra.DeepInfraClient(model="meta-llama/Meta-Llama-3-8B-Instruct"),
+            "prompt": "Antworte auf Deutsch: Was ist ein AVL-Baum in 1-2 Sätzen?",
+            "system_prompt": "Be specific!"
+        }
     
+
+        #test
+        result = to_test(**args)
+
+        self.assertEqual(type(result), str)
+        self.assertGreater(len(str.split(result)), 5)
