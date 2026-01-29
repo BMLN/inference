@@ -40,7 +40,7 @@ class DeepInfraClient(InferenceProvider):
 
 
     # entspricht deinem Muster: return requests.Response
-    def call(self, prompt:str, timeout=60, *args, **kwargs):
+    def call(self, prompt:str, timeout=400, *args, **kwargs):
         # ⚠️ wichtig: ctor-defaults + aufruf-kwargs zusammenführen
         params = {**self.default_params, **kwargs}
 
